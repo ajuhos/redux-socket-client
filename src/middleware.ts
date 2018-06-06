@@ -17,7 +17,7 @@ export const sharedStoreMiddleware = (socket: any) => (store: any) => {
         store.dispatch({
             [SERVER]: true,
             type: PRESENT,
-            state: present.state
+            payload: { state: present.state }
         });
         version = present.version;
         while(queue.length) {
