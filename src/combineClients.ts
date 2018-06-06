@@ -7,7 +7,7 @@ const setClient = (clientId: string, client: string, state: Map<string, any>) =>
 
 export const combineClients = (clientReducer: Function) => (state: any, action: any) => {
     if(typeof state === 'undefined') return Map();
-    if(action.type === PRESENT) return fromJS(action.state.clients);
+    if(action.type === PRESENT) return fromJS(action.payload.state.clients);
 
     return (state && action && typeof action[CLIENT] !== 'undefined')
         ? setClient(action[CLIENT], clientReducer(getClient(action[CLIENT], state), action), state)
