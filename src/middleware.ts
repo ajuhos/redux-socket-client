@@ -1,7 +1,7 @@
 import { PRESENT, SKIP } from './actions'
 import { SHARED, CLIENT } from './tags'
 
-export const sharedStoreMiddleware = (socket: any) => (store: any) => {
+export const sharedStoreMiddleware = (socket: any, options: { clientFirst: boolean } = { clientFirst: false }) => (store: any) => {
     const processAction = (action: any) => {
         action[SERVER] = true;
         store.dispatch(action);
@@ -45,7 +45,8 @@ export const sharedStoreMiddleware = (socket: any) => (store: any) => {
 
         if(action[SHARED]) {
             socket.emit(action[CLIENT] ? 'client-action' : 'action', action);
-            return next({type: SKIP})
+            if(options.clientFirst) return next(action);
+            else return next({type: SKIP})
         }
 
         return next(action)

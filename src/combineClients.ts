@@ -1,18 +1,42 @@
-import { PRESENT } from './actions';
+import { ADD_CLIENT, PRESENT } from './actions';
 import { CLIENT } from './tags';
 
-const getClient = (clientId: string, state: any[]) => state.find(c => c.id === clientId);
-const setClient = (clientId: string, client: string, state: any[]) => {
+type ArrayWithMappings<T> = Array<T> & { mappings: { [key: string]: number } };
+
+const getClient = (clientId: string, state: ArrayWithMappings<any>) => state[state.mappings[clientId]];
+const setClient = (clientId: string, client: string, state: ArrayWithMappings<any>): any => {
     const newState = state.slice();
-    newState[state.findIndex(c => c.id === clientId)] = client;
+    newState[state.mappings[clientId]] = client;
     return newState
 };
 
-export const combineClients = (clientReducer: Function) => (state: any[], action: any) => {
-    if(typeof state === 'undefined') return [];
-    if(action.type === PRESENT) return action.payload.state.clients;
+export const combineClients = (clientReducer: Function) => (state: ArrayWithMappings<any>|undefined, action: any): any[] => {
+    if(typeof state === 'undefined') {
+        const newState: any = [];
+        newState.mappings = {};
+        return newState
+    }
 
-    return (state && action && typeof action[CLIENT] !== 'undefined')
+    if(action.type === PRESENT) {
+        const { clients, shared } = action.payload.state;
+        const newState = clients.map(
+            (client: any) => clientReducer(client, { type: PRESENT, payload: { state: { shared, client } } })
+        );
+        newState.mappings = {};
+        clients.forEach((client: any, index: number) => newState.mappings[client.id] = index);
+        return newState;
+    }
+
+    if(action.type === ADD_CLIENT) {
+        const newState: any = [ ...state, clientReducer({ id: action[CLIENT] }, action) ];
+        newState.mappings = { ...state.mappings, [action[CLIENT]]: newState.length-1 };
+        return newState
+    }
+
+    const newState: ArrayWithMappings<any> = (state && typeof action[CLIENT] !== 'undefined')
         ? setClient(action[CLIENT], clientReducer(getClient(action[CLIENT], state), action), state)
-        : state.map(c => clientReducer(c, state))
+        : state.map(client => clientReducer(client, action));
+
+    newState.mappings = state.mappings;
+    return newState
 };
