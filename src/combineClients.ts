@@ -33,10 +33,17 @@ export const combineClients = (clientReducer: Function) => (state: ClientSet|und
     }
 
     if(action.type === ADD_CLIENT) {
-        const items = [ ...state.items, clientReducer({ id: action[CLIENT] }, action) ];
-        return {
-            items,
-            mappings: { ...state.mappings, [action[CLIENT]]: items.length-1 }
+        if(typeof state.mappings[action[CLIENT]] === "undefined") {
+            const items = [...state.items, clientReducer({id: action[CLIENT]}, action)];
+            return {
+                items,
+                mappings: {...state.mappings, [action[CLIENT]]: items.length - 1}
+            }
+        }
+        else {
+            // If a client connected at the same time at multiple devices, it is possible
+            // to have duplicate ADD_CLIENT actions. Skip in this case.
+            return state
         }
     }
 
