@@ -29,9 +29,7 @@ export const combineClients = (clientReducer: Function) => (state: ClientSet|und
         const items = clients.items.map(
             (client: any) => clientReducer(client, { type: PRESENT, payload: { state: { shared, client } } })
         );
-        const mappings: any = {};
-        items.forEach((client: any, index: number) => mappings[client.id] = index);
-        return { items, mappings };
+        return { items, mappings: clients.mappings };
     }
 
     if(action.type === ADD_CLIENT) {
