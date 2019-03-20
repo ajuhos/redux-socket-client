@@ -1,12 +1,24 @@
-import { PRESENT, SKIP } from './actions'
+import {CONNECT, PRESENT, SKIP} from './actions'
 import { SHARED, CLIENT } from './tags'
 
 export type SharedStoreMiddleware = ((store: any) => (next: Function) => (action: any) => any) & {
     switchSocket(socket: any): void
 }
 
-export const sharedStoreMiddleware = (socket: any, options: { clientFirst: boolean } = { clientFirst: false }): SharedStoreMiddleware => {
+export type SharedStoreMiddlewareOptions = { clientFirst: boolean }
+
+function middleware(): SharedStoreMiddleware;
+function middleware(socket: any): SharedStoreMiddleware;
+function middleware(socket: any, options: SharedStoreMiddlewareOptions): SharedStoreMiddleware;
+function middleware(options: SharedStoreMiddlewareOptions): SharedStoreMiddleware;
+function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clientFirst: false }): SharedStoreMiddleware {
     const setupSockets: ((socket: any) => void)[] = [];
+    const autoInit = arguments.length === 0 || (arguments.length === 1 && typeof socket.clientFirst !== 'undefined');
+
+    if(!autoInit) {
+        options = socket;
+        socket = null
+    }
 
     const middleware: SharedStoreMiddleware|any = (store: any) => {
         const SERVER = Symbol('server');
@@ -42,7 +54,7 @@ export const sharedStoreMiddleware = (socket: any, options: { clientFirst: boole
             processAction(data.action)
         };
 
-        let emit = socket.emit.bind(socket);
+        let emit: any = null;
         function setupSocket(newSocket: any) {
             emit = newSocket.emit.bind(newSocket);
 
@@ -59,18 +71,23 @@ export const sharedStoreMiddleware = (socket: any, options: { clientFirst: boole
         }
 
         setupSockets.push(setupSocket);
-        setupSocket(socket);
+        if(autoInit) setupSocket(socket);
 
         return (next: Function) => (action: any) => {
-            if(action[SERVER]) {
-                delete action[SERVER];
-                return next(action)
+            if(action.type === CONNECT) {
+                setupSocket(action.payload.socket)
             }
+            else if(emit) {
+                if (action[SERVER]) {
+                    delete action[SERVER];
+                    return next(action)
+                }
 
-            if(action[SHARED]) {
-                emit(action[CLIENT] ? 'client-action' : 'action', action);
-                if(options.clientFirst) return next(action);
-                else return next({type: SKIP})
+                if (action[SHARED]) {
+                    emit(action[CLIENT] ? 'client-action' : 'action', action);
+                    if (options.clientFirst) return next(action);
+                    else return next({type: SKIP})
+                }
             }
 
             return next(action)
@@ -82,4 +99,6 @@ export const sharedStoreMiddleware = (socket: any, options: { clientFirst: boole
     };
 
     return middleware
-};
+}
+
+export const sharedStoreMiddleware = middleware;

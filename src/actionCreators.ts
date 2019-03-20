@@ -1,4 +1,5 @@
 import { SHARED, CLIENT } from './tags';
+import {CONNECT} from "./actions";
 
 export const shared =
     (actionCreator: Function) => (...args: any[]) => ({
@@ -11,4 +12,12 @@ export const client =
         [SHARED]: true,
         [CLIENT]: true,
         ...actionCreator(...args)
+    });
+
+export const connectToSharedStore =
+    (socket: any) => ({
+        type: CONNECT,
+        payload: {
+            socket
+        }
     });
