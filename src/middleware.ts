@@ -13,7 +13,7 @@ function middleware(socket: any, options: SharedStoreMiddlewareOptions): SharedS
 function middleware(options: SharedStoreMiddlewareOptions): SharedStoreMiddleware;
 function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clientFirst: false }): SharedStoreMiddleware {
     const setupSockets: ((socket: any) => void)[] = [];
-    const autoInit = arguments.length === 1 && typeof socket.clientFirst !== 'undefined';
+    const autoInit = arguments.length === 2 || (arguments.length === 1 && typeof socket.clientFirst === 'undefined');
 
     if(!autoInit) {
         options = socket;
