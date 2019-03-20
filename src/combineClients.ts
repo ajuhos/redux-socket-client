@@ -3,7 +3,7 @@ import { CLIENT } from './tags';
 
 type ClientSet = {
     items: any[],
-    mappings: { [key: string]: number }
+    mappings: Record<string, number>
 };
 
 const getClient = (clientId: string, state: ClientSet) => state.items[state.mappings[clientId]];
