@@ -87,7 +87,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
 
                 if (action[SHARED]) {
                     emit(action[CLIENT] ? 'client-action' : 'action', action);
-                    if (options.clientFirst) return next(action);
+                    if (options && options.clientFirst) return next(action);
                     else return next({type: SKIP})
                 }
             }
