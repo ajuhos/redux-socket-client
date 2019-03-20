@@ -56,9 +56,11 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
 
         let emit: any = null;
         function setupSocket(newSocket: any) {
+            if(!newSocket) return;
+
             emit = newSocket.emit.bind(newSocket);
 
-            if(newSocket !== socket) {
+            if(socket && newSocket !== socket) {
                 socket.removeListener('present', handlePresent);
                 socket.removeListener('version', handleVersion);
                 socket.removeListener('action', handleAction);
