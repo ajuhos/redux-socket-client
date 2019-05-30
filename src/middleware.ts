@@ -24,6 +24,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
         const SERVER = Symbol('server');
         const queue: any[] = [];
         let version = -100;
+        let clientFirst = options && options.clientFirst;
 
         const processAction = (action: any) => {
             action[SERVER] = true;
@@ -41,7 +42,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
             version = present.version;
             while (queue.length) {
                 const {version: next, action} = queue.pop();
-                if (next !== version + 1) continue;
+                if (clientFirst && next !== version + 1) continue;
                 processAction(action)
             }
         };
@@ -49,7 +50,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
         const handleVersion = (v: any) => version = v;
 
         const handleAction = (data: any) => {
-            if (data.version !== version + 1) return queue.unshift(data);
+            if (clientFirst && data.version !== version + 1) return queue.unshift(data);
             if (data.client) data.action[CLIENT] = data.client;
             processAction(data.action)
         };
@@ -87,7 +88,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
 
                 if (action[SHARED]) {
                     emit(action[CLIENT] ? 'client-action' : 'action', action);
-                    if (options && options.clientFirst) return next(action);
+                    if (clientFirst) return next(action);
                     else return next({type: SKIP})
                 }
             }
