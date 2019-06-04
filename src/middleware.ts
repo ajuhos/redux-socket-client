@@ -1,5 +1,6 @@
 import {CONNECT, PRESENT, SKIP} from './actions'
 import { SHARED, CLIENT } from './tags'
+const debug = require('debug')('redux-socket-client');
 
 export type SharedStoreMiddleware = ((store: any) => (next: Function) => (action: any) => any) & {
     switchSocket(socket: any): void
@@ -28,6 +29,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
 
         const processAction = (action: any) => {
             action[SERVER] = true;
+            debug('incoming action', action);
             store.dispatch(action);
             version++
         };
@@ -87,6 +89,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
                 }
 
                 if (action[SHARED]) {
+                    debug('outgoing action', action);
                     emit(action[CLIENT] ? 'client-action' : 'action', action);
                     if (clientFirst) return next(action);
                     else return next({type: SKIP})
