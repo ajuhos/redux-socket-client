@@ -2,13 +2,13 @@ import { SHARED, CLIENT } from './tags';
 import {CONNECT} from "./actions";
 
 export const shared =
-    (actionCreator: Function) => (...args: any[]) => ({
+    <T extends (...args: any[]) => any>(actionCreator: T) => (...args: Parameters<T>) => ({
         [SHARED]: true,
         ...actionCreator(...args)
     });
 
 export const client =
-    (actionCreator: Function) => (...args: any[]) => ({
+    <T extends (...args: any[]) => any>(actionCreator: T) => (...args: Parameters<T>) => ({
         [SHARED]: true,
         [CLIENT]: true,
         ...actionCreator(...args)
