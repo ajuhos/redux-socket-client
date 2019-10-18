@@ -92,7 +92,7 @@ function middleware(socket?: any|SharedStoreMiddlewareOptions, options = { clien
                     debug('outgoing action', action);
                     emit(action[CLIENT] ? 'client-action' : 'action', action);
                     if (clientFirst) return next(action);
-                    else return next({type: SKIP})
+                    else return next({ type: SKIP, payload: action })
                 }
             }
 
